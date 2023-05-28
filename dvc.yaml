@@ -1,0 +1,36 @@
+stages:
+  raw_dataset_creation:
+    cmd: python src/data/load_data.py --config=params.yaml
+    deps:
+    - src/data/load_data.py
+    - data/external/boston.csv
+    outs:
+    - data/raw/boston.csv
+
+  split_data:
+    cmd: python src/data/split_data.py --config=params.yaml
+    deps:
+    - src/data/split_data.py
+    - data/raw/boston.csv
+    outs:
+    - data/processed/boston_train.csv
+    - data/processed/boston_test.csv
+
+  model_train:
+    cmd: python src/models/train_model.py --config=params.yaml
+    deps:
+    - data/processed/boston_train.csv
+    - data/processed/boston_test.csv
+    - src/models/train_model.py
+    params:
+    - linear_regression
+
+  log_production_model:
+    cmd: python src/models/production_model_selection.py --config=params.yaml
+    deps:
+    - src/models/production_model_selection.py
+    params:
+      - linear_regression
+
+    outs:
+    - models/model.joblib

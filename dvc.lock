@@ -1,0 +1,61 @@
+schema: '2.0'
+stages:
+  raw_dataset_creation:
+    cmd: python src/data/load_data.py --config=params.yaml
+    deps:
+    - path: data/external/boston.csv
+      md5: 9c1779811852cfe5bf00bb38f1df08f1
+      size: 37652
+    - path: src/data/load_data.py
+      md5: 284154f2803630fef1252e4102329751
+      size: 1464
+    outs:
+    - path: data/raw/boston.csv
+      md5: 9c1779811852cfe5bf00bb38f1df08f1
+      size: 37652
+  split_data:
+    cmd: python src/data/split_data.py --config=params.yaml
+    deps:
+    - path: data/raw/boston.csv
+      md5: 9c1779811852cfe5bf00bb38f1df08f1
+      size: 37652
+    - path: src/data/split_data.py
+      md5: cd6322d97ca3e787ee08afdee5f4401b
+      size: 1402
+    outs:
+    - path: data/processed/boston_test.csv
+      md5: 6fbfbe7d3bc11cf749ac7231fea1f893
+      size: 7649
+    - path: data/processed/boston_train.csv
+      md5: 59c625ea99e38973597ca13e4d1afd08
+      size: 30067
+  model_train:
+    cmd: python src/models/train_model.py --config=params.yaml
+    deps:
+    - path: data/processed/boston_test.csv
+      md5: 6fbfbe7d3bc11cf749ac7231fea1f893
+      size: 7649
+    - path: data/processed/boston_train.csv
+      md5: 59c625ea99e38973597ca13e4d1afd08
+      size: 30067
+    - path: src/models/train_model.py
+      md5: 146589ade875bfeaf5d9cdb8b3b0e31a
+      size: 3567
+    params:
+      params.yaml:
+        linear_regression:
+          fit_intercept: true
+  log_production_model:
+    cmd: python src/models/production_model_selection.py --config=params.yaml
+    deps:
+    - path: src/models/production_model_selection.py
+      md5: e5b6d0a12b2eb98ca9a933cf9eef5e26
+      size: 2490
+    params:
+      params.yaml:
+        linear_regression:
+          fit_intercept: true
+    outs:
+    - path: models/model.joblib
+      md5: af882ef73fb27bb78f4a8ba245f79aec
+      size: 1836
